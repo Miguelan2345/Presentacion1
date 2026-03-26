@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Evaluación Docente - Liceo Francisco del Rosario Sánchez</title>
+    <style>
+        :root { --blue: #0d47a1; --green: #2e7d32; --light-bg: #f0f2f5; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #455a64; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .main-card { width: 1000px; background: var(--light-bg); border-radius: 12px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); display: flex; flex-direction: column; overflow: hidden; }
+        .header { background: #fff; padding: 25px 40px; border-bottom: 5px solid var(--blue); display: flex; justify-content: space-between; align-items: center; }
+        .header h1 { color: var(--blue); margin: 0; font-size: 22px; text-transform: uppercase; }
+        .body-content { display: flex; padding: 25px; gap: 20px; height: 550px; }
+        .sidebar { width: 220px; background: #fff; border-radius: 10px; padding: 20px; border: 1px solid #cfd8dc; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 15px; }
+        .num-btn { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: #c8e6c9; color: #1b5e20; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; border: 1px solid #a5d6a7; transition: 0.2s; }
+        .num-btn.active { background: var(--blue) !important; color: #fff !important; transform: scale(1.1); border-color: var(--blue); }
+        .question-section { flex: 1; background: #fff; border-radius: 10px; padding: 35px; border: 1px solid #cfd8dc; display: flex; flex-direction: column; }
+        .meta { font-size: 12px; font-weight: bold; color: #90a4ae; text-transform: uppercase; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .question-text { font-size: 19px; font-weight: 700; color: #263238; margin-bottom: 25px; line-height: 1.4; }
+        .option { border: 1px solid #e0e0e0; padding: 15px 20px; margin-bottom: 10px; border-radius: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; font-size: 14.5px; transition: 0.2s; }
+        .option:hover { background: #e3f2fd; border-color: var(--blue); }
+        .option.selected { background: #e3f2fd; border-color: var(--blue); font-weight: 600; }
+        .radio-circle { width: 18px; height: 18px; border: 2px solid #999; border-radius: 50%; flex-shrink: 0; }
+        .option.selected .radio-circle { border-color: var(--blue); background: var(--blue); box-shadow: inset 0 0 0 3px #fff; }
+        .nav-footer { margin-top: auto; display: flex; justify-content: space-between; }
+        .btn { padding: 12px 30px; border-radius: 5px; border: none; font-weight: bold; cursor: pointer; text-transform: uppercase; font-size: 13px; }
+        .btn-prev { background: #eee; }
+        .btn-next { background: var(--blue); color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="main-card">
+    <div class="header">
+        <h1>Liceo Francisco del Rosario Sánchez</h1>
+        <div style="color: #78909c; font-weight: bold; font-size: 14px;">Evaluación del Superior Inmediato</div>
+    </div>
+    <div class="body-content">
+        <div class="sidebar">
+            <span style="font-weight: bold; font-size: 14px;">Ítems de Evaluación</span>
+            <div class="grid" id="itemGrid"></div>
+        </div>
+        <div class="question-section">
+            <div class="meta" id="metaLabel">Ítem 1 de 20</div>
+            <div class="question-text" id="qText">Cargando...</div>
+            <div id="optionsList"></div>
+            <div class="nav-footer">
+                <button class="btn btn-prev" onclick="move(-1)">Anterior</button>
+                <button class="btn btn-next" onclick="move(1)">Siguiente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questions = [
+        { id: 1, q: "La planificación está diseñada considerando los resultados de las evaluaciones y el contexto del estudiantado.", opts: ["La planificación integra de manera regular datos de las evaluaciones y el contexto del estudiantado.", "No se evidencia en su planificación el uso de datos de las evaluaciones ni el contexto del estudiantado.", "La planificación integra de forma consistente y pertinente todos los datos de las evaluaciones o el contexto del estudiantado.", "La planificación presenta parcialmente los datos de las evaluaciones o el contexto del estudiantado."] },
+        { id: 2, q: "Desarrolla propuestas didácticas contextualizadas y coherentes con el currículo y acordes con la modalidad, nivel y grado.", opts: ["Propuestas con coherencia curricular básica, pero escasa contextualización.", "Propuestas altamente coherentes, innovadoras y contextualizadas al entorno.", "Propuestas coherentes con el currículo y con contextualización pertinente.", "No se evidencian propuestas didácticas coherentes."] },
+        { id: 3, q: "Ajusta sus planes en función de las competencias curriculares que deben desarrollar sus estudiantes.", opts: ["Ajusta de manera proactiva y sistemática sus planes a partir del análisis de las competencias curriculares.", "No presenta evidencias de revisiones ni vinculación con competencias.", "Presenta evidencias de ajustes frecuentes, pero la coherencia es parcial.", "Presenta evidencias de ajustes limitados."] },
+        { id: 4, q: "Utiliza con precisión los datos e informaciones de seguimiento y evaluación para modificar sus planificaciones.", opts: ["Presenta evidencias precisas sobre la utilización continua y rigurosa para optimizar los planes.", "No muestra evidencias de la manera en que utiliza la información.", "Presenta evidencias de ajustes superficiales.", "Presenta evidencias de la utilización de información para modificaciones pertinentes."] },
+        { id: 5, q: "Diseña situaciones de aprendizaje y utiliza estrategias que promueven el desarrollo de competencias en sus estudiantes.", opts: ["Diseña situaciones de aprendizaje que promueven parcialmente el desarrollo de competencias.", "No se evidencia en su práctica el diseño de situaciones de aprendizaje.", "Diseña situaciones de aprendizaje altamente retadoras y pertinentes.", "Diseña situaciones de aprendizaje que promueven de manera regular el desarrollo de competencias."] },
+        { id: 6, q: "Promueve el uso de diversas fuentes de información y herramientas digitales en el proceso enseñanza-aprendizaje.", opts: ["Integra de manera excepcional herramientas digitales innovadoras que potencian el aprendizaje.", "No se evidencia el uso de herramientas digitales ni diversas fuentes.", "Utiliza fuentes de información y herramientas digitales de manera regular.", "Utiliza fuentes de información y herramientas digitales de forma limitada."] },
+        { id: 7, q: "Incorpora, en su ejercicio pedagógico, aportes de otros docentes para mejorar su práctica.", opts: ["Evidencia la incorporación que hace, de manera ocasional, de los aportes de colegas.", "No presenta evidencias de incorporación realizada a su ejercicio pedagógico.", "Muestra evidencia de la incorporación con regularidad de los aportes de colegas.", "Integra de forma sistemática los aportes de otros colegas promoviendo el intercambio."] },
+        { id: 8, q: "Diseña y utiliza instrumentos de evaluación coherentes con las competencias a evaluar y acordes a los niveles.", opts: ["Diseña instrumentos altamente innovadores y diversos que evalúan competencias de forma integral.", "No se evidencia el diseño de instrumentos de evaluación.", "Diseña instrumentos coherentes de forma regular.", "Diseña instrumentos con coherencia limitada."] },
+        { id: 9, q: "Participa activamente en experiencias de formación pertinentes, a partir del área, modalidad, nivel y grado.", opts: ["Participa de manera proactiva y constante en diversas experiencias de formación.", "No muestra evidencias de su participación.", "Muestra evidencias de participación regular.", "Muestra evidencias de participación limitadas."] },
+        { id: 10, q: "Ejecuta en su aula acciones basadas en datos de los resultados de evaluación de los estudiantes, tomando en cuenta necesidades.", opts: ["Ejecuta algunas acciones basadas en los resultados de evaluación, de manera superficial.", "No ejecuta en su aula ningún tipo de acciones basadas en datos.", "Ejecuta acciones de forma regular y pertinente.", "Ejecuta acciones a partir de un análisis realizado con profundidad y sistematicidad."] },
+        { id: 11, q: "Participa de forma proactiva en las actividades y procesos de gestión del centro educativo.", opts: ["Participación excepcional en los procesos de gestión institucional.", "No se evidencia participación en la gestión del centro.", "Participación regular en los procesos de gestión.", "Participación limitada en las actividades del centro."] },
+        { id: 12, q: "Aplica acciones que evidencian su nivel de responsabilidad en los logros y avances de sus estudiantes.", opts: ["Asume de forma constante la responsabilidad por los resultados de sus estudiantes.", "Acciones limitadas sobre la responsabilidad en los logros.", "No se evidencia la asunción de responsabilidad.", "Evidencia asunción de plena responsabilidad y compromiso proactivo."] },
+        { id: 13, q: "Atiende de manera oportuna a las consultas y requerimientos de las familias sobre el progreso de los estudiantes.", opts: ["Atiende de manera constante y proactiva a las familias.", "No atiende a los requerimientos de las familias.", "Atiende a las familias de forma regular.", "Atiende de manera limitada a las consultas de las familias."] },
+        { id: 14, q: "Promueve un clima de aula inclusivo, de respeto y equidad entre los estudiantes.", opts: ["Promueve constantemente la inclusión y el respeto mutuo.", "No se evidencia la promoción de un clima de respeto.", "Promueve el respeto y la equidad de forma regular.", "Promueve la inclusión de manera limitada."] },
+        { id: 15, q: "Coordina acciones con otros profesionales para atender necesidades educativas específicas de los estudiantes.", opts: ["Coordinación frecuente y organizada con otros profesionales.", "Coordinación esporádica y limitada.", "No se evidencia coordinación con otros profesionales.", "Coordinación activa, proactiva y eficiente."] },
+        { id: 16, q: "Acompaña a sus estudiantes en el proceso de aprendizaje, brindando retroalimentación oportuna.", opts: ["Retroalimentación constante y constructiva que potencia el aprendizaje.", "No brinda retroalimentación a sus estudiantes.", "Brinda retroalimentación de forma regular.", "Brinda retroalimentación de manera limitada."] },
+        { id: 17, q: "Demuestra dominio de los contenidos curriculares y de la didáctica de su área.", opts: ["Muestra un dominio excepcional de contenidos y didáctica.", "No muestra dominio suficiente de los contenidos.", "Muestra dominio adecuado de contenidos y didáctica.", "Muestra dominio limitado."] },
+        { id: 18, q: "Muestra compromiso ético y profesional en el cumplimiento de sus funciones.", opts: ["Compromiso ético intachable y ejemplar.", "No muestra compromiso ético suficiente.", "Compromiso ético de forma consistente.", "Compromiso ético de manera irregular."] },
+        { id: 19, q: "Fomenta la curiosidad, el cuestionamiento y la investigación en sus estudiantes.", opts: ["Fomenta constantemente la investigación y curiosidad.", "No se evidencia que fomente la investigación.", "Fomenta la investigación de forma regular.", "Fomenta la curiosidad de manera limitada."] },
+        { id: 20, q: "Utiliza los resultados de la autoevaluación para la mejora continua de su práctica pedagógica.", opts: ["Reflexiona y mejora constantemente su práctica basada en autoevaluación.", "No realiza procesos de autoevaluación.", "Realiza autoevaluación de forma regular.", "Realiza autoevaluación de manera ocasional."] }
+    ];
+
+    let current = 0;
+    let selections = Array(20).fill(null);
+
+    function render() {
+        const item = questions[current];
+        document.getElementById('metaLabel').innerText = `Ítem ${item.id} de 20`;
+        document.getElementById('qText').innerText = item.q;
+        
+        const list = document.getElementById('optionsList');
+        list.innerHTML = '';
+        item.opts.forEach((opt, idx) => {
+            const div = document.createElement('div');
+            div.className = `option ${selections[current] === idx ? 'selected' : ''}`;
+            div.innerHTML = `<div class="radio-circle"></div><span>${opt}</span>`;
+            div.onclick = () => { selections[current] = idx; render(); };
+            list.appendChild(div);
+        });
+
+        const grid = document.getElementById('itemGrid');
+        grid.innerHTML = '';
+        questions.forEach((q, i) => {
+            const btn = document.createElement('div');
+            btn.className = `num-btn ${i === current ? 'active' : ''}`;
+            btn.innerText = q.id;
+            btn.onclick = () => { current = i; render(); };
+            grid.appendChild(btn);
+        });
+    }
+
+    function move(dir) {
+        current = (current + dir + questions.length) % questions.length;
+        render();
+    }
+
+    render();
+</script>
+
+</body>
+</html>
